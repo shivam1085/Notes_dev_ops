@@ -1,0 +1,93 @@
+Git basic commands >>>
+git is a distributed version control system 
+
+to set name and email in git 
+>> git config --global user.name shivam1085
+>> git config --global user.Email shivam@gmail.com 
+
+
+show the modified files in working directory staged for your next commit
+>> git status
+
+
+initializing a directory as a git repository
+
+>>git init
+
+retrive repository from git hub
+
+>>git clone
+
+
+
+while working with git a file can be in diffrent states 
+
+untracked >> initialy every file is untracked
+staged >> when we add our file in git then it goes in the staged form in this state file resides in the staging area untill commited
+commited/unmodified >> when the file is commited then it goes in the git and saved as a snapshots 
+modifed >> when we make some changes in the unmodified file it called modified then it needed to be add in to be in the staging area 
+
+to add file in the staging area 
+>> git add 
+
+add all file in staging area
+>> git add -A
+
+to unstage the file 
+>> git reset
+
+to check what change is not staged  and what change is made by us 
+
+>> git diff
+
+to check what is not commited compare ,satging area with last commit 
+>> git diff --staged 
+
+to commit staged content as a snapshot 
+>> git commit -m "comment "
+####
+do not use skip staging area befor commit
+>> git commit -a -m "skiped staging area"
+
+
+
+
+create a new branch 
+>> git branch "branch name"
+
+list branches
+>> git branch
+
+show the history of the commits
+>> git log 
+>> git log -p -"number of last commits"
+
+
+to mathc your working code with your last commit 
+>> git checkout 
+
+to mach working code or file with last commit 
+>> git checkout -f
+
+if want to remove file from staging area 
+>> git rm --cached 
+
+to mere branch in the git master branch 
+
+>> git merege 
+
+###git ignore###
+createa git ignore file and put the ignoring pattrens that will not add in the git repos 
+
+'/log' if the file with the same patten reside in the same directory of git ignore that will be ignored 
+'*.log ' ignore everywhere 
+to ignore the directory 
+'log/' log is the name of directory here 
+
+
+
+
+
+
+
+

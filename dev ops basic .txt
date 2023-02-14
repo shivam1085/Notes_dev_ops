@@ -1,0 +1,138 @@
+dev ops 
+
+create aws account and launch ec2 instance 
+
+then install docker 
+
+update os - sudo yum update -y
+
+install docker 
+sudo amazon-linux-extras install docker
+
+start docker service 
+sudo service docker start
+
+sudo systemctl enable docker
+To ensure that the Docker daemon starts after each system reboot, run the following command:
+
+Add the ec2-user to the docker group so you can execute Docker commands without using sudo
+sudo usermod -a -G docker ec2-user
+
+docker info
+check is docker running without sudo
+
+creating Image and run website _________________-----
+after intalation of docker and nginx on aws ec2 
+create a website 
+create a dockerfilw in nano name it dockerfile
+_______________________________________________
+FROM nginx:alpine
+MAINTAINER Shivam <shivammalviya236@gmail.com>
+COPY website /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+_________________________________________________
+
+After creation of that site run command - 
+#comand to build docker image
+docker build --tag website .
+
+#comand to run container
+docker run --publish 80:80 website
+
+ then check site on local host or public ip 
+
+***************Docker compose***************************
+if we have database and and other services with our site than 
+then we need a tool called docker-compose
+ install docker compose 
+  then run a command
+  create a yml file that can include other services along with it
+---------------------------------------------------
+FROM nginx:alpine
+
+MAINTAINER Shivam <shivammalviya236@gmail.com>
+
+RUN apk add build-base ruby-nokogiri
+RUN gem install rspec capybara selenium-webdriver
+
+ENTRYPOINT ["rspc"]
+                                                                                                                                                                                                                                                                                                   
+---------------------------------------------------
+nano docker-compose.yml
+_________________________________________________  
+  version: '3.7'
+services:
+ website:
+  build:
+   context: .
+  ports:
+   - 80:80
+_____________________________________________
+
+now we can run our site with database and other services using docker compose
+#command
+docker-compose run website 
+
+**************************** Testing ************************************
+in this tutorial we will leaen how to do testind in docker 
+usig capibara rspect and selenium 
+
+for testing we create a directory called 'spec/unit' in our home directory
+and create page_spec.rb file inside that directory
+
+then create rspec.dockerfile in home directory 
+---------------------------------------
+require 'capybara'
+require 'capybara/dsl'
+
+describe "Examplt page render unit test"do
+ it"show the logo"
+end
+---------------------------------------
+
+then edit docker-compose.yml file 
+----------------------------------------------
+version: "3.7"
+services:
+  website:
+    build:
+      context: .
+    ports:
+      - 80:80
+  unit-tests:
+    volumes:
+      - "$PWD:/app"
+
+    build:
+      context: .
+      dockerfile: rspec.dockerfile
+    command:
+      - --pattern
+      - spec/unit/*_spec.rb
+-------------------------------------------------
+then run that command 
+#command
+ docker-compose up -d website
+then run our test case 
+docker compose run --rm unit-tests
+
+----------------------------------------------------------------------------------
+
+****************************************Terraform***********************************
+
+
+
+ssh -i terraformkey.pem ec2-user@18.183.74.210 connect to ec2 cloud using  cmd
+
+
+
+  
+
+
+
+
+
+
+
