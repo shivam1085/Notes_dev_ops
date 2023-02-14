@@ -1,0 +1,716 @@
+#Terraform 
+
+IAAC Infrastructure as a code
+
+Syntax
+ 
+----# details of the provider and authentication of the user 
+ 
+provider "aws" {
+region = "ap-northeast-1"
+access_key = "AKIAVI4SA3FOWCITGQGJ"
+secret_key = "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"
+}
+
+----# resouce that are to be used  from the provider 
+
+resource "aws_instance" "newEC2" {
+
+    ami = "ami-06ee4e2261a4dc5c3"
+    instance_type = "t2.micro"
+  
+}
+
+Commands  
+
+>> terraform init : this is the first command after writing terraform code, this is used to initialize a directory as a terraform directory 
+that comtains terraform code
+
+>> terraform plan : The terraform plan command lets you to preview the actions Terraform would take to modify your infrastructure,
+ or save a speculative plan which you can apply 
+ 
+>> terraform apply : The terraform apply command executes the actions proposed in a Terraform plan to create,
+ update, or destroy infrastructure.
+
+>> terraform destroy : to destroy the infrastructure 
+
+>> terraform destroy -target "example aws_instance.newEC2" 
+
+terraform state file -
+
+in terraform a state file stores all the details about the resouces that are created 
+
+*diesierd state - whatever is written in the terraform file is desierd state  +++++++++++++++++++++++++++++
+
+*current state  - state in which resouce present in if ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+if the resouce is changed maually then the current state of the resouce is diffrent from the diesierd state - 
+in that condition command terrafom plan will chance the cuurent state of the resouce into the diesierd state
+* if somthing is not in the terraform file then it's not in desierd state
+
+provider version ===
+
+the terrafom lock file stores the version of the provider if you want to use the newer version of plugins then change must made
+
+################Attribute and Output 
+
+Attribute are the value block assosiated with the specefic property of the resouce
+Output are used to print the specefic attribute at the end
+
+###################### to connect EIP with resource 
+
+resource "aws_eip_association" "eip_asso" {
+ instance_id = aws_instance.newEC2.id
+ allocation_id = aws_eip.OP.id
+}
+
+
+###terraform variable###
+
+in terraform we can create a file and add variable in it and access values from there 
+new 
+(((varfile.tf ))))
+
+variable "name"{
+default = "anithing ip , auth , id "
+}
+
+acces this using 
+
+ = [var.name]
+
+#types of variable>>
+
+1. enviroment variable >> for default value     resource name  name { value }
+2. commandline  using setx TF_VAR_name "value"  
+to print value  %TF_VAR_nameofattribute %  Ex. ami , instance_type, ip etc 
+
+3. from file    using (((((terrafor.tfvar))))) file , if only want to read that file assign it in cmd = -var-file = filename.tfvar
+4. variable defaults
+
+
+##################define the type of variable##################
+
+we can set a type of a variable using .tf file 
+isinde  variable name {
+					type = number/ string/ map/ list/ 	
+					}
+
+#########create multiple resources 
+
+there are two ways to create multiple resources in terraform 
+
+1. by copy and pasting the code and changing its and 
+
+2. by sunig count 'count perameater' 
+EX. 
+*this is a example of AWS elastic load balancer cloud
+
+resource "aws_elb" "bar" 
+{
+  name               = var.elb_name[count.index]
+  availability_zones = var.az
+  count = 3
+}  
+
+############Conditional expression 
+if the var.test == true then va;lue of count will be 3 if false the value will be 3
+        
+		count = var.test == false ? 3:0
+
+
+########### local Values
+A local value assigns a name to an expression, 
+so you can use the name multiple times within a module instead of repeating the expression.
+
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Service = "backend"
+    Owner   = "Shivam"
+  } 	 	
+}
+
+resource "aws_instance" "newEC2" {
+
+    ami = "ami-06ee4e2261a4dc5c3"
+    instance_type = "t2.micro"
+
+    tags = local.common_tags   #using local values in the instance of aws 
+	
+}
+
+
+################# Terraform functions 
+
+terra form only support pre define functions, and do not support user define functions
+
+functios >>
+ lookup 
+ file 
+ timestamp
+ element
+ and manymore can be seen in documentation
+ 
+ 
+ #################### Data source in terrafom
+ 
+ data source can fetch the value form the instance that we are to run 
+
+ data "aws_ami" "appami" {
+  most_recent = true
+  owners = ["amazon"]
+
+filter {
+
+  name ="name"
+ values = ["amzn2-ami-hvm*"]  
+}}
+
+and acces in usnig 
+ami = data.aws.ami.id 
+
+
+
+######################### Debuging 
+>> export TF_LOG = TRACE 
+after that command terrform plan will show very large number of logs 
+
+that we can save in a file using 
+export TF_LOG_PATH = file path/filename
+
+
+## formating >> terrafom fmt command fix all the formating of terrafom file 
+
+## validate - 
+ to validate a terrafom file we have to use terrafom pan command but it is very time taking and do many configration 
+   insted of that we can use 
+   >> terrafom validate //command 
+    and then use terrafom plan 
+	
+## for better readability and clearity we must use firrent file for diffrent blocks like 
+
+for  variables one file , for providers one file, for resources one file 
+
+####Dynamic Blocks  	
+ Dynamic blocks allows us to cunstruct reapetable blocks wich supports inside resources
+
+variable "sg_ports" {
+  type = list(number)
+  description = "list of ports"
+  default = [8200,8300,8201,9200]
+  
+}
+
+
+  dynamic "ingress" {
+    for_each = var.sg_ports  # I can also define an itrator here >> itrator port 
+    content{
+  
+    from_port        = ingress.value    #then this would be port.value
+
+    to_port          = ingress.value
+    protocol         = "tcp"
+    cidr_blocks      = [aws_vpc.main.cidr_block]
+    
+  
+    }
+    
+  }
+}
+
+
+################### Tainting 
+
+when file is modified the taint command is used  >> taint terraform resource name
+ // after thet command the resource is marked tainten inside the tf.stste file then it should be recreated 
+
+after applying the change 
+
+terrafrom will delete the resource and create a new resouce match with our desierd state 
+
+
+#####splat expreesion
+
+##### AWS user 
+arn - this user 
+user - user'sname
+id  - uniq id 
+
+##splat expression
+resource "aws_instance""newEC2"{
+}
+
+output "arns"{
+value = aws_instance.newEC2[numebr of single id or * for all list of resources ]}
+
+################ Terraform Graph 
+
+create a fiel graph.dot using >> terraform graph> graph.dot 
+
+copy its containt and run it in the graph wix that would create an image for us 
+
+
+############ saving terraform plan in the binary file 
+
+terrafom plan  - out = demopath
+that will save the terraform plan in the binary file then we can run that unchangable binary file insted of the plan 
+
+>> terraform apply demopath - name of the binary file 
+terraform state file will also created on the basis of that binary file 
+
+#### Settings 
+we can write settings in the in the file name settings.tf in the {}
+
+like {requierd provider =">1.2.3  version"}
+
+###### Dealing with large infrastructure
+
+make diffrent folders for diffrent folders for diffrent resources 
+
+# when we run terra form plan that palan refresh everytime that can cause slowdown 
+so we can use 
+
+## 
+terraform paln -refresh = false flag  to stop refresh 
+and
+## 
+terraform paln -refresh = false flag -target = "aws_security group"  for only resource to not to stop refresh
+
+##auto-approve to apply without 'yes'
+
+
+#####zipmap
+combine list and create a map 
+output name {
+  value       = zipmap(  aws_instance.newEC2[*].name,aws_instance.newEC2[*].arn)
+}
+
+
+### for_each
+{key= val
+key = val
+}
+use of each object 
+we can acces that using each.vey  and each.value
+
+#################################################Provisioners
+
+provisioners allows us to write write scripts inside the terraform code 
+
+there are two types of provisioners 
+# local exec - for funing scriptslocally 
+# remote exec - for runnig scripts on remote server
+
+
+we can connect and install anything or run our scripts on resource using 'remote provisioners' 
+
+resource "aws_instance" "web" {						   <<<<<<< aws resource 
+ 
+  ami = "ami-06ee4e2261a4dc5c3"
+  instance_type = "t2.micro"		
+  key_name = "terraformkey"							<<<<< asigning the name of aws key 	 			
+  
+  connection {							<<<<<<conecting with ec2 resource 				
+    type     = "ssh"
+    user     = "ec2-user"
+    private_key = file("${path.module}/terraformkey.pem")  <<<< login using aws key 
+    host     = self.public_ip                              
+  }
+
+  provisioner "remote-exec" {                             <<<<< provisionerblaock 
+    inline = [
+      "sudo amazon-linux-extras install -y nginx1",       <<<<< script to install and run nginix in the ec 2 instance 
+      "sudo systemctl start nginx"
+    ]
+  }
+}
+
+#local provider__
+
+resource "aws_instance" "myec2" {
+ 
+  ami = "ami-06ee4e2261a4dc5c3"
+  instance_type = "t2.micro"
+
+
+  provisioner "local-exec"{
+   command = "echo ${aws_instance.myec2.private} >> private_ip.txt"   << that will run loacally and creae a file taht includes private ip
+     }
+  
+  }
+
+we can specify a provider destroy type using // 
+when = destroy{
+inline = [] 
+}
+
+**** if provisioner fails then resource is marked tainted it meants for next terraform apply that resorce will be destroyed 
+
+we can overcome from that problem using 
+
+> on-failure = continue
+
+##################################################Null Resource 
+
+we can check is somthing is working or not using nul resource
+
+resource "null_resource" "health_check" {
+  provisioner "local-exec" {
+    command = "curl https://google.com"   if not abel to curl then it will be fail 
+	
+	
+  
+  }
+}
+
+resouce "name_of_resorce" "name"{
+
+depends_on = [null_resource.health_check]    <<< resorce will only create when the null resouce block runs completly
+
+}
+
+
+
+######################################### DRY Principles  
+DRY stands for do not repeat yourself 
+to achive this we can create modules in terraform then we can acces them using thier locations
+
+resource "aws_instance" "web" 
+  {
+  
+  ami = "ami-06ee4e2261a4dc5c3"
+  instance_type = var.instance_type
+  key_name = "terraformkey"
+  }
+  
+  
+ module "ec2module" 
+ {
+    source = "../../module/ec2"
+    instance_type = "t2.lager"
+
+ }
+ 
+ ** when variables are used a user can change the value of the variable at the runtime so we uses locals for thet 
+ ** if we want to acces an attribute like id or ip address of the resource we can use output block 
+resource "aws_instance" "web" {
+ 
+  ami = "ami-06ee4e2261a4dc5c3"
+  instance_type = var.instance_type
+  key_name = "terraformkey"
+  vpc_security_group_ids = [module.aws_security_group.sgid] << output in the security group
+  
+  
+  }
+
+  module "aws_security_group" {
+    source = "../../module/sgrp"
+
+  
+}
+
+
+
+################################Terraform Registry
+
+we can search any specific mmodule in the terraform registry  and use in our code 
+ 
+ anyone can publish a module in the terraform registry 
+ requirments >
+ .it should be on git hub 
+ . Name > Terraform <provider> <name>
+ . repository discription
+ . standard module structure
+ . tags
+ 
+#################################### Terraform Workspace 
+terraform workspace are like windows workspace where we can do diffrent work saprated from each other 
+just like that in terraform we can change the workplce according to the work 
+
+>> terraform workspace new/select/list/delete/show 
+
+
+################################### Terraform with git 
+
+to use terra form with git first we have to push our terraform file to the github and then we can access them using this 
+
+module "demogit" {
+    source = "git::https://github.com/shivam1085/Terraform_module.git"
+  
+}
+files will be downloaded into the .terraform/modules
+
+we can also cahnge branch using 
+
+module "demogit" {
+    source = "git::https://github.com/shivam1085/Terraform_module.git?ref = dev"  << here
+  
+}
+
+############################ git ignore >> https://github.com/github/gitignore/blob/main/Terraform.gitignore  ** link og page 
+
+
+##########################  Terraform backend 
+
+Terraform backend is the service to store terraform state file there are many services are available s3 is one of them 
+
+first create a s3 bucket and then create a subfolder in it 
+
+to add backend file in terraform we create a file named backend 
+
+terraform {
+  backend "s3" {
+    bucket = "terraform-backend-shivam"  << name of s3 bucket 
+    key    = "network/trf.tfstate"   << subfolder and file name 
+    region = "ap-northeast-1"         << region 
+  }
+}
+
+after runnig terraform init the file terraform.tfstate is saved in s3 bucket 
+
+if any opration is runnig a temrery file is created med "statelock" that don't allow any one to run any other write command 
+
+state can be force unlock using 'force-unlock'  command 
+
+##########################################State file locking 
+
+to perform state locking we have to connect daynamo db with s3 bucket to ensure state locking 
+
+terraform {
+  backend "s3" {
+    bucket = "terraform-backend-shivam"
+    key    = "network/demo.tfstate"
+    region = "ap-northeast-1"
+    dynamodb_table = "terraform_state_locking"
+  }
+}
+
+
+########################### State Managment 
+
+terraform state move 
+
+to rename existing resorce without destroying or recreating >> terraform mv aws_instance.current_name new name
+
+terraform state pull
+
+to downloadedresorces from remote locations 
+
+to remove resource form terrafrom plan 
+terraform state rm my_ec2
+
+terraform state show >> show the attribute of a single resoucr 
+
+######################################################### Remote state connection 
+to access the  output data from the remote state 
+eip resource {
+config={
+ bucket = "terraform-backend-shivam"  << name of s3 bucket 
+    key    = "network/trf.tfstate"   << subfolder and file name 
+    region = "ap-northeast-1" 
+    dynamodb_table = "table name"
+}
+}
+
+we can use /// cide_block = dtat.terraform_remote_state.eip.output.eip_addr << acces the ip form remote file present in s3 bucket
+
+############################Terraform Import
+############################Importing existing resource with terrafrom 
+
+we can import existing resource in terraform and we can handel it using code insted of mannually 
+
+first we need to find or create a resorce 
+then we are to write our resource file with exact same configration as present resource then 
+
+resource "aws_instance" "web" {
+    ami = "ami-0bba69335379e17f8"
+    instance_type = "t2.micro"
+    key_name = "AWS223"
+    vpc_security_group_ids = ["sg-005acccd125e59ddf"]
+    tags = {
+        Name = "server 26-december"
+
+    }
+
+  
+}
+
+ then a commad after >> terraform init 
+ 
+ >> terraform import aws_instance.web i-06871bbaa7cb5c682
+ >> terraform plan 
+ 
+  this is how we can acces existing resource 
+_________________________________________________________________
+ 
+################################ How to create resource in multiple account/regions
+
+to create two diffrent regions we uses "alias variable"
+/provider
+
+provider "aws" {
+  region     = "ap-northeast-1"
+}
+
+provider "aws" {
+  alias = "new_provider"    <<<<<<<<<<<<< alias variable
+  region = "us-west-1"
+  profile = "2nd_account"    <<<<<<<<<<<<<< for  vredentials
+}
+/resource 
+resource "aws_eip" "eipJapan" {
+    vpc = true
+}
+
+resource "aws_eip" "eipUS" {
+    provider = aws.new_provider
+    vpc = true
+}
+
+#################################### Sensitive Parameter
+ sensitive = true   prevent showing the firld's output in the cli output
+
+########################################## Terraform Vault
+
+vault is used for storing sensitiv information 
+
+provisioner "vault" {
+    address = "ip address"
+
+
+}
+
+data "vault_generic_secret" "demo" {
+    path = address in vault
+  
+}
+
+output "vault_secret" {
+    value = data.vault_generic_secret.demo
+    
+  
+}
+
+######################################### Terraform Cloude 
+terraform cloud is a sevice on wich we can run our terraform code with some better functions like cost estimation and key 
+managment and many more.
+
+we can also use sentinal to apply some condition befor apply like cost limit, policy check and etc 
+
+we can remotly run our terraform code on terraform cloude using remote access
+
+/remotebackend.tf 
+terraform {
+  cloud {
+    organization = "shivtechalpha"
+
+    workspaces {
+      name = "remote_work"
+    }
+  }
+}
+
+
+first we need to login in the terraform using >> terraform login 
+after pasting access token 
+
+then terraform code will use cloude resource and provide the cli output on the lockal machine 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
