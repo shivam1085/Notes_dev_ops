@@ -1,0 +1,236 @@
+
+************** Jenkins ********************************
+
+jenkins is used for automation and for continious integration and continious delivery 
+
+CI: continious integration is the process of continious build after every commit and perofm automation testcases 
+
+CD: Continious Delivery helps to automate the process of deployment 
+
+jenkins Inreastructure -
+
+master server : controle pileline and schedule the builds 
+
+Agent : run the build 
+ permanent agent 
+ cloud agent 
+when the code is commited then the Master Trigers the pilpline and distribute the build to agent to run 
+
+
+******************************Intastalallation******************
+
+to install jenkins first install docker 
+then run that command
+ 
+>> docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts-jdk11
+
+after runnig that command copy the password and paste it in the jenkins server page
+
+
+********************************* MAVEN 
+
+
+to install maven 
+run 
+>> docker container ls    that will show the jenkins container then copy  the id of that container 
+
+that command will giv us the root of the container terminal 
+
+then run >> apt-get update
+Then >> apt-get install maven 
+
+***************************************** Pipeline 
+ to create a pipeline first open the jenkins on web browser then select pipeline project 
+ 
+ then write pipline code then paste it at jenkins editor 
+ 
+ pipeline{
+    agent any
+    stages{
+    stage("clean up "){
+        steps{
+            deleDir( )
+ 
+ 
+        }
+    }
+    stage ("clone repo"){
+        steps{
+            sh "git clone https://github.com/addamstj/simple-java-maven-app.git"
+        }
+    }
+    stage ("Bulid"){
+    steps{
+        dir ("simple-java-maven-app"){
+            sh "mvn clean install"
+            }
+        }
+    }
+
+    stage("test"){
+        steps{
+                dir("simple-java-maven-app"){
+                    sh "mvn test"
+                }
+            }
+        }
+    }
+}
+
+
+
+we can also define mutiple branch stratagy in jenkins then jenkis checks all the branch and build all the branches
+
+*************************************************** Pipline parameter 
+
+pipeline {
+    agent any
+
+    parameters {															input variable 			
+        booleanParam(defaultValue: false, description: "Enable service?", name: "myBoolean") << that will create a check box 
+    }
+
+    stages {
+        stage("Demo"){
+            steps {
+                echo "booleanParam is set to: ${params.myBoolean}" << that will print true or false 
+            }
+        }
+    }
+	
+}
+
+
+choise 
+
+pipeline {
+    agent any
+
+    parameters {
+        choice(choices: ["TEST", "DEV", "QA", "PRE-PROD", "PROD"], description: "Which environment to deploy in?", name: "deployEnv")
+    }
+
+    stages {
+        stage("Demo"){
+            steps {
+                echo "Choice is set to: ${params.deployEnv}"
+            }
+        }
+    }
+}
+
+
+
+
+String 
+
+pipeline {
+    agent any
+
+    parameters {
+        string(defaultValue: "TEST", description: "Which environment to deploy in?", name: "deployEnv")
+    }
+
+    stages {
+        stage("Demo"){
+            steps {
+                echo "string is set to: ${params.deployEnv}"
+            }
+        }
+    }
+}
+
+
+and many more 
+
+
+
+
+
+************************* 
+
+we can also use sleep() fucntion for dalay 
+
+*********************** If sattement
+
+ script {
+                    if (env.BRANCH_NAME == 'main') {
+                        echo 'Hello from main branch'
+                    }  else {
+                        sh "echo 'Hello from ${env.BRANCH_NAME} branch!'"
+                    }
+
+
+
+***************************************Jenkins fucntion
+
+pipeline {
+    agent any 
+    stages{
+        stage("Demo"){
+            steps {
+                myFunc("Hello from the demo stage!")
+            }
+        }
+    }
+}
+
+def myFunc(String myText) {
+    echo "myText is set to: ${myText}"
+}
+
+
+
+Note ______________ if variables are defined inside the stage block then it can not be accessed outside
+
+we can also crete a job remotly using a job variable 
+
+parameter can be passed to another job 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+

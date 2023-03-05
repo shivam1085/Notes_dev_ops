@@ -84,6 +84,9 @@ createa git ignore file and put the ignoring pattrens that will not add in the g
 to ignore the directory 
 'log/' log is the name of directory here 
 
+how to remove file from commited area 
+
+git reset HEAD~2  << number of commits
 
 
 
@@ -91,3 +94,4 @@ to ignore the directory
 
 
 
+git remote remove origin

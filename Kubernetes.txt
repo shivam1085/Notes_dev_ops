@@ -5,6 +5,8 @@ scaling, and management of containerized applications.
 
 #
 ###################Kubernetes Architecture 
+
+
 *Node :
 Node(minians) is a worker machine where the containers are launched by kubernetes 
 
@@ -12,9 +14,12 @@ Node(minians) is a worker machine where the containers are launched by kubernete
 A cluster is a group of nodes group together, if one node fails then application is accessible from other nodes 
 
 *Master:
-Master is also a node with kubernetes installed in it, master node watch all the node and responsible for actual orchestation 
+Master is also a node with kubernetes installed in it, master node watch all the node and responsible for actual orchestation
+ 
 
 ###################Components of kubernetes:
+
+
 
 API server : APIserver act as front end for kubernetes user, devices, CLI all talk to the 
 API server to intresct with ks8 server
@@ -32,12 +37,173 @@ Container runtime: container runtime is an underlying software that is used to r
 
 Kublet: kubelet is an agent that runs on each node 
 
-
-
-
-
 install hyoervisor
  
 install minicube 
 
 start minicube cluster 
+
+
+first start minkube using 
+
+>> minikube start --driver=docker     use --force if docker used under root user
+
+
+chseck the ststus of minkube cluster 
+
+>> minikube cluster
+if all fine then go ahed and create a deployment using kubeclt
+
+>> kubeclt create deployment <<name of deployment >> --image = <<name of image >>
+
+if we run that command we see that the deployment is not runnig because that is not in docker hub and image can not be fetched 
+
+so delete that deployment using 
+
+>>kubeclt delete deployment <name of deplyment >
+
+
+then push the image on docker hub and create the deployment again
+
+>>kubectl create deployment firstdeployment --image=shivam01100/dock
+
+so we can se >>>
+root@DOCKUB:/home/shivam/kubfile# kubectl get deployment
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+firstdeployment   1/1     1            1           3m57s
+
+
+
+############################# Exposing our pod to web 
+
+
+
+>> kubectl expose deployment <<firstdeployment>> --type=LoadBalancer --port 8080
+								name of pod
+
+we can check our running pods using 
+
+>> kubeclt get pods
+
+then we can acces this pod using 
+
+>> minkube service firstdeploymentkub
+
+root@DOCKUB:/home/shivam/kubfile# minikube service firstdeployment
+|-----------|-----------------|-------------|---------------------------|
+| NAMESPACE |      NAME       | TARGET PORT |            URL            |
+|-----------|-----------------|-------------|---------------------------|
+| default   | firstdeployment |        8080 | http://192.168.49.2:31251 |
+|-----------|-----------------|-------------|---------------------------|
+
+
+############################ Multiple Pod creation 
+
+>> kubectl scale deployment/firstdeployment --replicas=3      <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+							^name of our pod 
+>> kubeclt get pods 
+
+firstdeployment-7857f7c8f9-5pfgk   1/1     Running   0               11s
+firstdeployment-7857f7c8f9-kq5f6   1/1     Running   0               11s
+firstdeployment-7857f7c8f9-wn7dv   1/1     Running   1 (3h51m ago)   2d
+
+
+
+as we can see there are mutiple pods are runnig in our cluster 
+
+all pods are runnig same container 
+
+if one of these pod ever crash then another pod will take place and run the continer
+
+
+############################### Update Image in docker
+
+
+to udate our pod we need to first build our image with a tag 
+>> docker build -t <name of image>:<tag>
+
+then we will push it on docker hub 
+
+>> docker tag 14315e2bdb70  shivam01100/dock:2      <<<tag with image id
+
+>> docker push shivam01100/dock:2   >> then push
+
+>> kubectl set image deployment/firstdeployment dock=shivam01100/dock:2     << then update image uisng that command
+
+
+
+
+###############################  Delete
+
+
+>> kubeclt delete service <name of service>
+
+>> kubeclt delete deployment <name of deployment>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+ 
+
+
+
+
