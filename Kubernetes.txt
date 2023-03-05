@@ -1,0 +1,43 @@
+#####################3Kubernities 
+
+Kubernetes, also known as K8s, is an open-source system for automating deployment, 
+scaling, and management of containerized applications.
+
+#
+###################Kubernetes Architecture 
+*Node :
+Node(minians) is a worker machine where the containers are launched by kubernetes 
+
+*Cluster:
+A cluster is a group of nodes group together, if one node fails then application is accessible from other nodes 
+
+*Master:
+Master is also a node with kubernetes installed in it, master node watch all the node and responsible for actual orchestation 
+
+###################Components of kubernetes:
+
+API server : APIserver act as front end for kubernetes user, devices, CLI all talk to the 
+API server to intresct with ks8 server
+
+ETCD : is a distributed relible key value store used by ks8 to store all the data, 
+and also responsible for emplementing lock within cluster 
+
+Scheduler: Scheduler distribute fork and container accross multiple nodes, 
+it find newly created node and assign them to container
+
+controller: controlers are the brain behind the orchestation they re resposnsible for notiching when nodes conatainers or 
+endpoint goes down, controllers makes decison to 
+
+Container runtime: container runtime is an underlying software that is used to run containers, can be docker and others 
+
+Kublet: kubelet is an agent that runs on each node 
+
+
+
+
+
+install hyoervisor
+ 
+install minicube 
+
+start minicube cluster 
